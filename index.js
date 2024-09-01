@@ -1346,6 +1346,7 @@ async function moduleWorker() {
 jQuery(async () => {
     const getContainer = () => $(document.getElementById('blip_container') ?? document.getElementById('extensions_settings'));
     const windowHtml = $(await $.get(`${extensionFolderPath}/window.html`));
+    const streamEventName = 'STREAM_TOKEN_RECEIVED' in event_types ? event_types.STREAM_TOKEN_RECEIVED : event_types.SMOOTH_STREAM_TOKEN_RECEIVED;
 
     getContainer().append(windowHtml);
     loadSettings();
@@ -1423,7 +1424,7 @@ jQuery(async () => {
 
     eventSource.on(event_types.CHAT_CHANGED, showLastMessage);
     eventSource.on(event_types.MESSAGE_DELETED, showLastMessage);
-    eventSource.on(event_types.SMOOTH_STREAM_TOKEN_RECEIVED, playOnStream);
+    eventSource.on(streamEventName, playOnStream);
 
     const wrapper = new ModuleWorkerWrapper(moduleWorker);
     setInterval(wrapper.update.bind(wrapper), UPDATE_INTERVAL);
