@@ -1139,8 +1139,8 @@ async function playOnStream(token) {
         console.log('BLIP: New message, state reset');
     }
 
-    token = token.replace(/[â€œâ€]/g, '"')
-                 .replace(/â€™/g, "'");
+    token = token.replace(/[“”]/g, '"')
+                 .replace(/’/g, "'");
 
     let newContent = '';
     if (token.length > streamState.lastTokenLength) {
@@ -1193,10 +1193,7 @@ async function playOnStream(token) {
         return;
     }
 
-    let character_settings = settings.voiceMap['default'];
-    if (settings.voiceMap[character] !== undefined) {
-        character_settings = settings.voiceMap[character];
-    }
+    const character_settings = settings.voiceMap[character] ?? settings.voiceMap['default'];
 
     const audio_speed = character_settings['audioSpeed'] / 1000;
     if ((Date.now() - last_blip) < audio_speed * 1000) {
@@ -1452,11 +1449,16 @@ jQuery(async () => {
             isInsideAsterisks: false,
             isInsideQuotes: false,
             messageId: null,
+            lastTokenLength: 0
         };
     };
 
     eventSource.on(event_types.MESSAGE_SENT, () => resetStreamState('MESSAGE_SENT'));
-    eventSource.on(event_types.CHAT_CHANGED, () => resetStreamState('CHAT_CHANGED'));
+    eventSource.on(event_types.CHAT_CHANGED, () => {
+        resetStreamState('CHAT_CHANGED');
+        updateCharactersList();
+        showLastMessage();
+    });
     eventSource.on(event_types.MESSAGE_SWIPED, () => resetStreamState('MESSAGE_SWIPED'));
 
     eventSource.on(event_types.GROUP_UPDATED, updateCharactersList);
@@ -1476,6 +1478,7 @@ async function updateCharactersListOnce() {
     console.debug(DEBUG_PREFIX, 'UDPATING char list', characters_list);
     while (characters_list.length == 0) {
         console.debug(DEBUG_PREFIX, 'UDPATING char list');
+        updateCharactersList();
         await delay(1);
     }
 }
