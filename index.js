@@ -48,7 +48,8 @@ let streamState = {
     isInsideAsterisks: false,
     isInsideQuotes: false,
     messageId: null,
-    lastTokenLength: 0
+    lastTokenLength: 0,
+    previousChar: ''
 };
 
 //#############################//
@@ -1192,7 +1193,8 @@ async function playOnStream(token) {
             isInsideAsterisks: false,
             isInsideQuotes: false,
             messageId: currentMessageId,
-            lastTokenLength: 0 // Length of the token
+            lastTokenLength: 0, // Length of the token
+            previousChar: ''
         };
         console.log('BLIP: New message, state reset');
     }
@@ -1222,6 +1224,19 @@ async function playOnStream(token) {
     for (const char of newContent) {
         // a) First, we check if the character on the current position is a special character or not
         const isNormalChar = char.trim() !== '' && char !== '*' && char !== '"';
+
+        // Update the multiplier during streaming
+        if (streamState.previousChar) {
+            if ('.!?'.includes(streamState.previousChar)) {
+                current_multiplier = settings.maxMultiplier || 2.0;
+            } else if (streamState.previousChar === ',') {
+                current_multiplier = ((settings.minMultiplier || 1.0) + 
+                                    (settings.maxMultiplier || 2.0)) / 2;
+            } else {
+                current_multiplier = settings.minMultiplier || 1.0;
+            }
+        }
+        streamState.previousChar = char;
 
         // Then, the decision to whether or not play the sound is made
         if (isNormalChar && !shouldPlaySound) {
@@ -1546,12 +1561,7 @@ jQuery(async () => {
     // Reset stream state on new message, chat change, or swipe
     const resetStreamState = (source) => {
         console.log(`BLIP: State reset triggered by: ${source}`);
-        streamState = {
-            isInsideAsterisks: false,
-            isInsideQuotes: false,
-            messageId: null,
-            lastTokenLength: 0
-        };
+        streamState = {};
         // Clear all pending timeouts
         blip_timeouts.forEach(timeoutId => clearTimeout(timeoutId));
         blip_timeouts = [];
