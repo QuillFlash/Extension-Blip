@@ -17,6 +17,8 @@ const extensionFolderPath = 'scripts/extensions/third-party/Extension-Blip';
 const MODULE_NAME = 'Blip';
 const DEBUG_PREFIX = '<Blip extension> ';
 const UPDATE_INTERVAL = 100;
+// Audio caching storage
+const audioCache = new Map();
 
 let characters_list = []; // Updated with module worker
 let blip_assets = null; // Initialized only once with module workers
@@ -1051,10 +1053,19 @@ async function processMessage(chat_id, is_user = false) {
 }
 
 async function loadAudioAsset(audio_asset) {
-    return fetch(audio_asset)
+    // Check if the sound bit is already cached
+    if (audioCache.has(audio_asset)) {
+        return audioCache.get(audio_asset);
+    }
+    
+    // If not, download it
+    const decodedData = await fetch(audio_asset)
         .then(data => data.arrayBuffer())
-        .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-        .then((decodedData) => { return decodedData; });
+        .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer));
+    
+    // Put the file into the cache
+    audioCache.set(audio_asset, decodedData);
+    return decodedData;
 }
 
 async function playAudioFile(decodedData, audio_volume, speed, min_pitch, max_pitch, wait) {
