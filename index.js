@@ -1155,6 +1155,9 @@ function playBlip(frequency, volume) {
     oscillator.stop(audioContext.currentTime + 0.1);
 }
 
+// Storing the timeout IDs to save CPU cycles
+let blip_timeouts = [];
+
 /* Smoother sound playback (sounds more like Undertale)
     and using a cursor, the code is now context-aware */
 async function playOnStream(token) {
@@ -1282,11 +1285,15 @@ async function playOnStream(token) {
                 wait_time += decodedData.duration * 1000;
             }
 
-            setTimeout(() => {
+            // Collecting the timeout ID
+            const timeoutId = setTimeout(() => {
                 if (audio !== null) {
                     audio.stop(0);
                 }
             }, wait_time);
+
+            // Storing the ID
+            blip_timeouts.push(timeoutId);
         }).catch(err => {
             console.error('BLIP: Error loading audio:', err);
         });
@@ -1534,6 +1541,9 @@ jQuery(async () => {
             messageId: null,
             lastTokenLength: 0
         };
+        // Clear all pending timeouts
+        blip_timeouts.forEach(timeoutId => clearTimeout(timeoutId));
+        blip_timeouts = [];
     };
 
     eventSource.on(event_types.MESSAGE_SENT, () => resetStreamState('MESSAGE_SENT'));
