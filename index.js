@@ -973,7 +973,7 @@ async function processMessage(chat_id, is_user = false) {
     let previous_char = '';
     let current_string = current_message.substring(0, starting_index);
     //scrollChatToBottom();
-    
+
     is_animation_pause = false;
     let is_inside_asterisk = isOdd(countOccurrences(current_string, '*'));
     let is_inside_quote = isOdd(countOccurrences(current_string, '"'));
@@ -1031,7 +1031,7 @@ async function processMessage(chat_id, is_user = false) {
             is_animation_pause = false;
         }
 
-         // Phrase pause
+        // Phrase pause
         if (phrase_delay > 0 && ['!', '?', '.'].includes(previous_char)) {
             is_animation_pause = true;
             await delay(phrase_delay);
@@ -1058,12 +1058,12 @@ async function loadAudioAsset(audio_asset) {
     if (audioCache.has(audio_asset)) {
         return audioCache.get(audio_asset);
     }
-    
+
     // If not, download it
     const decodedData = await fetch(audio_asset)
         .then(data => data.arrayBuffer())
         .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer));
-    
+
     // Put the file into the cache
     audioCache.set(audio_asset, decodedData);
     return decodedData;
@@ -1071,10 +1071,10 @@ async function loadAudioAsset(audio_asset) {
 
 async function playAudioFile(decodedData, audio_volume, speed, min_pitch, max_pitch, wait) {
     const volume = audio_volume * extension_settings.blip.audioVolume / 100;
-    
+
     while (is_in_text_animation) {
         await delay(0.01);
-        
+
         if (is_animation_pause || !is_text_to_blip) {
             continue;
         }
@@ -1093,7 +1093,7 @@ async function playAudioFile(decodedData, audio_volume, speed, min_pitch, max_pi
 
         const step = 0.01;
         let waited = 0;
-        
+
         while (waited < wait_time && is_in_text_animation && !is_animation_pause && is_text_to_blip) {
             //console.debug(DEBUG_PREFIX,"Animation pause, waiting")
             await delay(step);
@@ -1108,22 +1108,22 @@ async function playAudioFile(decodedData, audio_volume, speed, min_pitch, max_pi
 
 async function playGeneratedBlip(audio_volume, speed, min_frequency, max_frequency) {
     const volume = audio_volume * extension_settings.blip.audioVolume / 100;
-    
+
     while (is_in_text_animation) {
         await delay(0.01);
-        
+
         if (is_animation_pause || !is_text_to_blip) {
             continue;
         }
 
         const frequency = Math.random() * (max_frequency - min_frequency) + min_frequency;
         playBlip(frequency, volume);
-        
+
         let wait_time = 0.01 + current_multiplier * speed;
-        
+
         const step = 0.01;
         let waited = 0;
-        
+
         while (waited < wait_time && is_in_text_animation && !is_animation_pause && is_text_to_blip) {
             await delay(step);
             waited += step;
@@ -1201,7 +1201,7 @@ async function playOnStream(token) {
 
     // 3.) Providing consistent character encoding
     token = token.replace(/[“”]/g, '"')
-                 .replace(/’/g, "'");
+        .replace(/’/g, "'");
 
     // 4.) We ONLY process new tokens
     let newContent = '';
@@ -1230,8 +1230,8 @@ async function playOnStream(token) {
             if ('.!?'.includes(streamState.previousChar)) {
                 current_multiplier = settings.maxMultiplier || 2.0;
             } else if (streamState.previousChar === ',') {
-                current_multiplier = ((settings.minMultiplier || 1.0) + 
-                                    (settings.maxMultiplier || 2.0)) / 2;
+                current_multiplier = ((settings.minMultiplier || 1.0) +
+                    (settings.maxMultiplier || 2.0)) / 2;
             } else {
                 current_multiplier = settings.minMultiplier || 1.0;
             }
@@ -1241,15 +1241,15 @@ async function playOnStream(token) {
         // Then, the decision to whether or not play the sound is made
         if (isNormalChar && !shouldPlaySound) {
             let muted = false;
-            
+
             if (settings.ignoreAsterisk && streamState.isInsideAsterisks) {
                 muted = true;
             }
-            
+
             if (settings.onlyQuote && !streamState.isInsideQuotes) {
                 muted = true;
             }
-            
+
             if (!muted) {
                 shouldPlaySound = true;
             }
@@ -1296,7 +1296,7 @@ async function playOnStream(token) {
         const audio_min_pitch = character_settings['audioSettings']['minPitch'];
         const audio_max_pitch = character_settings['audioSettings']['maxPitch'];
         const audio_wait = character_settings['audioSettings']['wait'];
-        
+
         loadAudioAsset(audio_asset).then(decodedData => {
             const volume = audio_volume * settings.audioVolume / 100;
             const pitch = Math.random() * (audio_max_pitch - audio_min_pitch) + audio_min_pitch;
@@ -1328,7 +1328,7 @@ async function playOnStream(token) {
         const audio_max_frequency = character_settings['audioSettings']['maxFrequency'];
         const volume = audio_volume * settings.audioVolume / 100;
         const frequency = Math.random() * (audio_max_frequency - audio_min_frequency) + audio_min_frequency;
-        
+
         if (!settings.audioMuted) {
             playBlip(frequency, volume);
         }
@@ -1466,7 +1466,7 @@ async function moduleWorker() {
     //if (getContext().characterId === undefined
     //|| getContext().chat[getContext().chat.length-1].is_system == true)
     //    showLastMessage();
-    
+
     if (moduleEnabled) {
         if (blip_assets === null)
             updateBlipAssetsList();
@@ -1499,7 +1499,7 @@ jQuery(async () => {
     $('#blip_auto_scroll_to_animation').on('click', onAutoScrollChatToAnimationClick);
 
     //$("#blip_audio").hide();
-    
+
     $('#blip_audio_mute').on('click', onAudioMuteClick);
     $('#blip_audio_volume_slider').on('input', onAudioVolumeChange);
 
@@ -1557,7 +1557,7 @@ jQuery(async () => {
     eventSource.on(event_types.MESSAGE_RECEIVED, (chat_id) => hyjackMessage(chat_id));
     eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (chat_id) => processMessage(chat_id));
     eventSource.on(event_types.USER_MESSAGE_RENDERED, (chat_id) => processMessage(chat_id, true)); // {user_message_to_render = chat_id;});
-    
+
     // Reset stream state on new message, chat change, or swipe
     const resetStreamState = (source) => {
         console.log(`BLIP: State reset triggered by: ${source}`);
