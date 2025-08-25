@@ -809,9 +809,6 @@ function updateVoiceMapText() {
         }
     }
 
-    if (extension_settings.rvc) {
-        extension_settings.rvc.voiceMapText = voiceMapText;
-    }
     $('#blip_voice_map').val(voiceMapText);
 
     console.debug(DEBUG_PREFIX, 'Updated voice map debug text to\n', voiceMapText);
@@ -1556,6 +1553,7 @@ jQuery(async () => {
 
     eventSource.on(event_types.MESSAGE_RECEIVED, (chat_id) => hyjackMessage(chat_id));
     eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (chat_id) => processMessage(chat_id));
+    eventSource.on(event_types.MESSAGE_SENT, (chat_id) => hyjackMessage(chat_id, true));
     eventSource.on(event_types.USER_MESSAGE_RENDERED, (chat_id) => processMessage(chat_id, true)); // {user_message_to_render = chat_id;});
     
     // Reset stream state on new message, chat change, or swipe
@@ -1567,7 +1565,11 @@ jQuery(async () => {
         blip_timeouts = [];
     };
 
-    eventSource.on(event_types.MESSAGE_SENT, () => resetStreamState('MESSAGE_SENT'));
+    // GENERATION events
+    eventSource.on(event_types.GENERATION_STARTED, () => resetStreamState('GENERATION_STARTED'));
+    eventSource.on(event_types.GENERATION_ENDED, () => resetStreamState('GENERATION_ENDED'));  
+    eventSource.on(event_types.GENERATION_STOPPED, () => resetStreamState('GENERATION_STOPPED'));
+    
     eventSource.on(event_types.CHAT_CHANGED, () => {
         resetStreamState('CHAT_CHANGED');
         updateCharactersList();
